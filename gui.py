@@ -3,43 +3,64 @@ from tkinter import ttk
 from tkinter import filedialog
 import os
 import os.path 
+from PIL import Image, ImageTk
 
 class GUI:
     def __init__(self):
-       # initialize the main window 
+        '''initializes the GUI'''
+        
+        # initialize the main window 
         self.root = tk.Tk()
         self.root.state('zoomed')
-        self.root.configure(bg = 'FFFFFF')
+        self.root.configure(bg = '#FFFFFF')
        
         # configure row/column weights on the root window so the interface can resize itself
         self.root.grid_columnconfigure(0, weight=1)
         self.root.grid_columnconfigure(1, weight=1) 
-        self.root.grid_rowconfigure(0, weight=1)
+        self.root.grid_rowconfigure(0, weight=1) # panel 3
+        self.root.grid_rowconfigure(1, weight=5) # panel 1 & 2
+
+        # ensure panel 1 is one colour
+        style = ttk.Style()
+        style.configure("Treeview", background='#A6A6A6', fieldbackground='#A6A6A6')
+
+
+        # load icons for Treeview
+        folder_image = Image.open("folder.jpeg")
+        folder_image = folder_image.resize((20, 20))
+        self.folder_icon = ImageTk.PhotoImage(folder_image)
+
+        file_image = Image.open("file.jpg")
+        file_image = file_image.resize((20, 20))
+        self.file_icon = ImageTk.PhotoImage(file_image)
+
 
         # create panel 3
         self.panel3 = tk.Frame(self.root, bg = '#8FBAEF')
         self.panel3.grid(row=0, column=0, columnspan=2, sticky="nsew", padx=5, pady=5)
-        self.panel3_title = tk.Label(self.panel3, text = 'Selected Directory:', fg = '#FFFFFF')
+        self.panel3_title = tk.Label(self.panel3, text = 'Selected Directory:', bg = '#8FBAEF', fg = '#FFFFFF')
        
         self.panel3.grid_rowconfigure(0, weight=1)
         self.panel3.grid_columnconfigure(0, weight=1)
-        self.pnael3.grid_rowconfigure(1, weight = 5) # space for actual selected directory
+        self.panel3.grid_rowconfigure(1, weight = 5) # space for actual selected directory
         
         self.panel3_title.grid(row=0, column=0, sticky='nsew')
 
         # create panel 1
         self.panel1 = tk.Frame(self.root, bg='#A6A6A6')
         self.panel1.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
-        self.panel1_title= tk.Label(self.panel1, text = 'Directory Tree', fg = '#FFFFFF')
+        self.panel1_title= tk.Label(self.panel1, text = 'Directory Tree', bg='#A6A6A6', fg = '#FFFFFF')
        
         self.panel1.grid_rowconfigure(0, weight=1)
         self.panel1.grid_columnconfigure(0, weight=1)
         self.panel1.grid_rowconfigure(1, weight=1) # space for 'choose folder' button
         self.panel1.grid_rowconfigure(2, weight=5) # space for directory tree
+
+        self.panel1.configure(bg='red') #temp
         
         self.panel1_title.grid(row=0, column=0, sticky='nsew')
         
-        self.choose_folder_button = tk.Button(self.panel1, text='Choose Folder', command=self.choose_folder)
+        self.choose_folder_button = tk.Button(self.panel1, text='Choose Folder', command=self.choose_folder, bg='#A6A6A6')
         self.choose_folder_button.grid(row=1, column=0, sticky='nsew')
 
         self.tree = ttk.Treeview(self.panel1)
@@ -48,7 +69,7 @@ class GUI:
         # create panel 2
         self.panel2 = tk.Frame(self.root, bg = '#63976F')
         self.panel2.grid(row=1, column = 1, sticky='nsew', padx=5, pady=5)
-        self.panel2_title = tk.Label(self.panel2, text = 'Files', fg = '#FFFFFF')
+        self.panel2_title = tk.Label(self.panel2, text = 'Files', bg = '#63976F', fg = '#FFFFFF')
        
         self.panel2.grid_rowconfigure(0, weight=1)
         self.panel2.grid_columnconfigure(0, weight=1)
@@ -58,17 +79,20 @@ class GUI:
 
         self.initial_path = None 
 
-
-    # def error_message(self, message):
-    #     tk.messagebox.showerror('Error', message)
     
     def choose_folder(self):
+        '''gathers all the main directories from the os for user to choose from'''
+        
         select_folder = filedialog.askdirectory() # returns file path as string
 
         if select_folder != "":
             self.initial_path = select_folder 
+            self.display_folder_contents()
        
+
     def get_selected_folder_contents(self):
+        '''gathers the selected directory's contents'''
+
         folders = []
         files = []
         contents = os.listdir(self.initial_path) # returns list of names of contents in folder 
@@ -82,6 +106,25 @@ class GUI:
             else:
                 files.append(item) # if path_to_check does not lead to another folder, must be a file, so append to list of files
 
+        return folders, files
+
+
+    def display_folder_contents(self):
+        '''displays the selected directory along with its subdirectories and files underneath'''
+         
+        self.tree.delete(*self.tree.get_children()) # remove old directory's contents
+
+        folders, files = self.get_selected_folder_contents() 
         
+        directory_name = os.path.basename(self.initial_path) # get the name of the selected directory from its path
+        root_node = self.tree.insert('', 'end', text = directory_name) # insert returns an identifier, which is the ID of the top node 
+
+        for folder in folders:
+            self.tree.insert(root_node, 'end', text=folder, image=self.folder_icon)
+        
+        for file in files:
+            self.tree.insert(root_node, 'end', text=file, image=self.file_icon)
 
 
+gui = GUI()
+gui.root.mainloop()
