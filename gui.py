@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import filedialog
 import os
 import os.path 
 
@@ -33,9 +34,16 @@ class GUI:
        
         self.panel1.grid_rowconfigure(0, weight=1)
         self.panel1.grid_columnconfigure(0, weight=1)
-        self.panel1.grid_rowconfigure(1, weight=5) # space for directory tree
+        self.panel1.grid_rowconfigure(1, weight=1) # space for 'choose folder' button
+        self.panel1.grid_rowconfigure(2, weight=5) # space for directory tree
         
         self.panel1_title.grid(row=0, column=0, sticky='nsew')
+        
+        self.choose_folder_button = tk.Button(self.panel1, text='Choose Folder', command=self.choose_folder)
+        self.choose_folder_button.grid(row=1, column=0, sticky='nsew')
+
+        self.tree = ttk.Treeview(self.panel1)
+        self.tree.grid(row=2, column=0, sticky='nsew')
 
         # create panel 2
         self.panel2 = tk.Frame(self.root, bg = '#63976F')
@@ -48,9 +56,32 @@ class GUI:
         
         self.panel2_title.grid(row=0, column=0, sticky='nsew')
 
-        self.tree = ttk.Treeview(self.panel1)
-        self.initial_path = self.initial_path
+        self.initial_path = None 
 
 
-    def create_directory_tree(self):
-        pass
+    # def error_message(self, message):
+    #     tk.messagebox.showerror('Error', message)
+    
+    def choose_folder(self):
+        select_folder = filedialog.askdirectory() # returns file path as string
+
+        if select_folder != "":
+            self.initial_path = select_folder 
+       
+    def get_selected_folder_contents(self):
+        folders = []
+        files = []
+        contents = os.listdir(self.initial_path) # returns list of names of contents in folder 
+
+        # check if contents are folder or file 
+        for item in contents:
+            path_to_check = os.path.join(self.initial_path, item) # joins content name with selected folder's path
+
+            if os.path.isdir(path_to_check): 
+                folders.append(item) # if path_to_check leads to a another folder, append to list of folders
+            else:
+                files.append(item) # if path_to_check does not lead to another folder, must be a file, so append to list of files
+
+        
+
+
