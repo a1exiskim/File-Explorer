@@ -148,7 +148,21 @@ class GUI:
             text= f"Selected Directory: {selected_directory}\nPath: {self.initial_path}\nNumber of Folders: {len(folders)}\nNumber of Files: {len(files)}")
 
         
+    def tree_item_selection(self, event):
+        '''Handles actions performed after a user selects a node in the directory tree.
+           Retrieves the selected node's path, determines whether it is a directory,
+           and obtains the contents of the selected directory for further processing.'''
+        
+        item_selected = self.tree.selection() # returns a tuple
+        item_node_id = item_selected[0] # item selected is only ever one item, we can extract the id from the 0th index
+        
+        item_node_path = self.path_dictionary.get(item_node_id)
 
+        if os.path.isdir(item_node_path):
+            folders, files = self.get_selected_folder_contents(item_node_path)
+
+    
+  
 
 gui = GUI()
 gui.root.mainloop()
