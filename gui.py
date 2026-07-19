@@ -69,6 +69,8 @@ class GUI:
         self.tree = ttk.Treeview(self.panel1)
         self.tree.grid(row=2, column=0, sticky='nsew')
 
+        self.tree.bind('<<TreeviewSelect>>', self.tree_item_selection)
+
         # create panel 2
         self.panel2 = tk.Frame(self.root, bg = '#63976F')
         self.panel2.grid(row=1, column = 1, sticky='nsew', padx=5, pady=5)
@@ -92,16 +94,16 @@ class GUI:
 
         if select_folder != "":
             self.initial_path = select_folder 
-            self.display_folder_contents()
+            self.display_folder_contents(self.initial_path)
             self.display_directory_summary()
        
 
-    def get_selected_folder_contents(self):
+    def get_selected_folder_contents(self, path):
         '''gathers the selected directory's contents'''
 
         folders = []
         files = []
-        contents = os.listdir(self.initial_path) # returns list of names of contents in folder 
+        contents = os.listdir(path) # returns list of names of contents in folder 
 
         # check if contents are folder or file 
         for item in contents:
@@ -115,27 +117,27 @@ class GUI:
         return folders, files
 
 
-    def display_folder_contents(self):
+    def display_folder_contents(self, path):
         '''displays the selected directory along with its subdirectories and files underneath'''
-        
+
         self.tree.delete(*self.tree.get_children()) # remove old directory's contents
 
-        folders, files = self.get_selected_folder_contents() 
-        
-        directory_name = os.path.basename(self.initial_path) # get the name of the selected directory from its path
-        root_node = self.tree.insert('', 'end', text = directory_name) # insert returns an identifier, which is the ID of the top node 
+        folders, files = self.get_selected_folder_contents(path)
 
-        self.path_dictionary[root_node]=self.initial_path 
+        directory_name = os.path.basename(path) # get the name of the selected directory from its path
+        root_node = self.tree.insert('', 'end', text=directory_name)
+
+        self.path_dictionary[root_node] = path
 
         for folder in folders:
-            folder_to_check = os.path.join(self.initial_path, folder)
+            folder_to_check = os.path.join(path, folder)
             folder_node = self.tree.insert(root_node, 'end', text=folder, image=self.folder_icon)
-            self.path_dictionary[folder_node]=folder_to_check
-        
+            self.path_dictionary[folder_node] = folder_to_check
+
         for file in files:
-            file_to_check = os.path.join(self.initial_path, file)
+            file_to_check = os.path.join(path, file)
             file_node = self.tree.insert(root_node, 'end', text=file, image=self.file_icon)
-            self.path_dictionary[file_node]=file_to_check
+            self.path_dictionary[file_node] = file_to_check
 
     def display_directory_summary(self):
         '''displays metadata of current selected directory'''
@@ -145,6 +147,7 @@ class GUI:
         self.directory_summary_label.config(
             text= f"Selected Directory: {selected_directory}\nPath: {self.initial_path}\nNumber of Folders: {len(folders)}\nNumber of Files: {len(files)}")
 
+        
 
 
 gui = GUI()
