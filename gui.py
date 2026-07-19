@@ -82,6 +82,8 @@ class GUI:
 
         self.initial_path = None 
 
+        self.path_dictionary = {}
+
     
     def choose_folder(self):
         '''gathers all the main directories from the os for user to choose from'''
@@ -123,11 +125,17 @@ class GUI:
         directory_name = os.path.basename(self.initial_path) # get the name of the selected directory from its path
         root_node = self.tree.insert('', 'end', text = directory_name) # insert returns an identifier, which is the ID of the top node 
 
+        self.path_dictionary[root_node]=self.initial_path 
+
         for folder in folders:
-            self.tree.insert(root_node, 'end', text=folder, image=self.folder_icon)
+            folder_to_check = os.path.join(self.initial_path, folder)
+            folder_node = self.tree.insert(root_node, 'end', text=folder, image=self.folder_icon)
+            self.path_dictionary[folder_node]=folder_to_check
         
         for file in files:
-            self.tree.insert(root_node, 'end', text=file, image=self.file_icon)
+            file_to_check = os.path.join(self.initial_path, file)
+            file_node = self.tree.insert(root_node, 'end', text=file, image=self.file_icon)
+            self.path_dictionary[file_node]=file_to_check
 
     def display_directory_summary(self):
         '''displays metadata of current selected directory'''
