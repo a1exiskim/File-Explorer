@@ -38,13 +38,16 @@ class GUI:
         # create panel 3
         self.panel3 = tk.Frame(self.root, bg = '#8FBAEF')
         self.panel3.grid(row=0, column=0, columnspan=2, sticky="nsew", padx=5, pady=5)
-        self.panel3_title = tk.Label(self.panel3, text = 'Selected Directory:', bg = '#8FBAEF', fg = '#FFFFFF')
+        self.panel3_title = tk.Label(self.panel3, text = 'Directory Summary:', bg = '#8FBAEF', fg = '#FFFFFF')
        
         self.panel3.grid_rowconfigure(0, weight=1)
         self.panel3.grid_columnconfigure(0, weight=1)
-        self.panel3.grid_rowconfigure(1, weight = 5) # space for actual selected directory
+        self.panel3.grid_rowconfigure(1, weight = 5) # space for directory summary
         
         self.panel3_title.grid(row=0, column=0, sticky='nsew')
+
+        self.directory_summary_label = tk.Label(self.panel3, text='')
+        self.directory_summary_label.grid(row=1, column=0, sticky='nsew')
 
         # create panel 1
         self.panel1 = tk.Frame(self.root, bg='#A6A6A6')
@@ -88,6 +91,7 @@ class GUI:
         if select_folder != "":
             self.initial_path = select_folder 
             self.display_folder_contents()
+            self.display_directory_summary()
        
 
     def get_selected_folder_contents(self):
@@ -111,7 +115,7 @@ class GUI:
 
     def display_folder_contents(self):
         '''displays the selected directory along with its subdirectories and files underneath'''
-         
+        
         self.tree.delete(*self.tree.get_children()) # remove old directory's contents
 
         folders, files = self.get_selected_folder_contents() 
@@ -124,6 +128,15 @@ class GUI:
         
         for file in files:
             self.tree.insert(root_node, 'end', text=file, image=self.file_icon)
+
+    def display_directory_summary(self):
+        '''displays metadata of current selected directory'''
+
+        folders, files = self.get_selected_folder_contents()  
+        selected_directory = os.path.basename(self.initial_path)
+        self.directory_summary_label.config(
+            text= f"Selected Directory: {selected_directory}\nPath: {self.initial_path}\nNumber of Folders: {len(folders)}\nNumber of Files: {len(files)}")
+
 
 
 gui = GUI()
