@@ -140,7 +140,7 @@ class GUI:
             self.path_dictionary[file_node] = file_to_check
 
     def display_directory_summary(self):
-        '''displays metadata of current selected directory'''
+        '''displays metadata of current selected directory in panel 3'''
 
         folders, files = self.get_selected_folder_contents()  
         selected_directory = os.path.basename(self.initial_path)
@@ -154,15 +154,25 @@ class GUI:
            and obtains the contents of the selected directory for further processing.'''
         
         item_selected = self.tree.selection() # returns a tuple
+        print(item_selected)
         item_node_id = item_selected[0] # item selected is only ever one item, we can extract the id from the 0th index
         
         item_node_path = self.path_dictionary.get(item_node_id)
 
         if os.path.isdir(item_node_path):
             folders, files = self.get_selected_folder_contents(item_node_path)
+            self.display_subdirectory(item_node_id, folders)
 
     
-  
+    def display_subdirectory(self, selected_node, subfolders_to_display):
+        '''inserts each subfolder underneath its parent folder'''
+        
+        for subfolder in subfolders_to_display:
+            selected_node_path = self.path_dictionary.get(selected_node)
+            full_node_path = os.path.join(selected_node_path, subfolder)
+            subfolder_node = self.tree.insert(selected_node, 'end', text=subfolder , image=self.folder_icon)
+            self.path_dictionary[subfolder_node] = full_node_path
+
 
 gui = GUI()
 gui.root.mainloop()
