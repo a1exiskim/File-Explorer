@@ -95,7 +95,7 @@ class GUI:
         if select_folder != "":
             self.initial_path = select_folder 
             self.display_folder_contents(self.initial_path)
-            self.display_directory_summary()
+            self.display_directory_summary(self.initial_path)
        
 
     def get_selected_folder_contents(self, path):
@@ -139,13 +139,16 @@ class GUI:
             file_node = self.tree.insert(root_node, 'end', text=file, image=self.file_icon)
             self.path_dictionary[file_node] = file_to_check
 
-    def display_directory_summary(self):
+    def display_directory_summary(self, path):
         '''displays metadata of current selected directory in panel 3'''
 
-        folders, files = self.get_selected_folder_contents()  
-        selected_directory = os.path.basename(self.initial_path)
+        folders, files = self.get_selected_folder_contents(path)  
+        selected_directory = os.path.basename(path)
         self.directory_summary_label.config(
-            text= f"Selected Directory: {selected_directory}\nPath: {self.initial_path}\nNumber of Folders: {len(folders)}\nNumber of Files: {len(files)}")
+            text= f"Selected Directory: {selected_directory}\n"
+                  f"Path: {self.initial_path}\n"
+                  f"Number of Folders: {len(folders)}\n"
+                  f"Number of Files: {len(files)}")
 
         
     def tree_item_selection(self, event):
@@ -154,7 +157,6 @@ class GUI:
            and obtains the contents of the selected directory for further processing.'''
         
         item_selected = self.tree.selection() # returns a tuple
-        print(item_selected)
         item_node_id = item_selected[0] # item selected is only ever one item, we can extract the id from the 0th index
         
         item_node_path = self.path_dictionary.get(item_node_id)
@@ -162,7 +164,8 @@ class GUI:
         if os.path.isdir(item_node_path):
             folders, files = self.get_selected_folder_contents(item_node_path)
             self.display_subdirectory(item_node_id, folders)
-
+            self.display_directory_summary(item_node_path)
+        
     
     def display_subdirectory(self, selected_node, subfolders_to_display):
         '''inserts each subfolder underneath its parent folder'''
