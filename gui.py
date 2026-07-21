@@ -82,6 +82,9 @@ class GUI:
         
         self.panel2_title.grid(row=0, column=0, sticky='nsew')
 
+        self.display_files_list = tk.Listbox(self.panel2, bg='#63976F', fg='#FFFFFF')
+        self.display_files_list.grid(row=1, column=0, sticky='nsew')
+
         self.initial_path = None 
 
         self.path_dictionary = {}
@@ -104,21 +107,22 @@ class GUI:
         folders = []
         files = []
         contents = os.listdir(path) # returns list of names of contents in folder 
+        print(contents)
 
         # check if contents are folder or file 
         for item in contents:
-            path_to_check = os.path.join(self.initial_path, item) # joins content name with selected folder's path
+            path_to_check = os.path.join(path, item) # joins content name with selected folder's path
 
             if os.path.isdir(path_to_check): 
                 folders.append(item) # if path_to_check leads to a another folder, append to list of folders
-            else:
-                files.append(item) # if path_to_check does not lead to another folder, must be a file, so append to list of files
+            if os.path.isfile(path_to_check):
+                files.append(item) # if path_to_check leads to a file, append to list of files
 
         return folders, files
 
 
     def display_folder_contents(self, path):
-        '''displays the selected directory along with its subdirectories and files underneath'''
+        '''displays the selected directory along with its subdirectories underneath'''
 
         self.tree.delete(*self.tree.get_children()) # remove old directory's contents
 
@@ -127,17 +131,13 @@ class GUI:
         directory_name = os.path.basename(path) # get the name of the selected directory from its path
         root_node = self.tree.insert('', 'end', text=directory_name)
 
-        self.path_dictionary[root_node] = path
+        self.path_dictionary[root_node] = path # add node id and node path to dictionary
 
         for folder in folders:
             folder_to_check = os.path.join(path, folder)
             folder_node = self.tree.insert(root_node, 'end', text=folder, image=self.folder_icon)
             self.path_dictionary[folder_node] = folder_to_check
 
-        for file in files:
-            file_to_check = os.path.join(path, file)
-            file_node = self.tree.insert(root_node, 'end', text=file, image=self.file_icon)
-            self.path_dictionary[file_node] = file_to_check
 
     def display_directory_summary(self, path):
         '''displays metadata of current selected directory in panel 3'''
@@ -156,7 +156,10 @@ class GUI:
            Retrieves the selected node's path, determines whether it is a directory,
            and obtains the contents of the selected directory for further processing.'''
         
+        print("tree_item_selection called")
+
         item_selected = self.tree.selection() # returns a tuple
+        #print(item_selected)
         item_node_id = item_selected[0] # item selected is only ever one item, we can extract the id from the 0th index
         
         item_node_path = self.path_dictionary.get(item_node_id)
@@ -168,14 +171,24 @@ class GUI:
         
     
     def display_subdirectory(self, selected_node, subfolders_to_display):
-        '''inserts each subfolder underneath its parent folder'''
-        
-        for subfolder in subfolders_to_display:
-            selected_node_path = self.path_dictionary.get(selected_node)
-            full_node_path = os.path.join(selected_node_path, subfolder)
-            subfolder_node = self.tree.insert(selected_node, 'end', text=subfolder , image=self.folder_icon)
-            self.path_dictionary[subfolder_node] = full_node_path
+        '''inserts each subfolder underneath its parent folder to display'''  
 
+        if len(self.tree.get_children(selected_node)) == 0:
+            for subfolder in subfolders_to_display:
+                selected_node_path = self.path_dictionary.get(selected_node)
+                full_node_path = os.path.join(selected_node_path, subfolder)
+            
+                if os.path.isdir(full_node_path):
+                    subfolder_node = self.tree.insert(selected_node, 'end', text=subfolder , image=self.folder_icon)
+                    self.path_dictionary[subfolder_node] = full_node_path
+
+    def display_files(self, path):
+        self.tree.delete(*self.display_files_list.get_children()) # remove old files from previous run
+
+        folders, files = self.get_selected_folder_contents(path)
+    
+        for file in files:
+            self.display_files_list.insert('end', file, Image=self.file_icon)
 
 gui = GUI()
 gui.root.mainloop()
