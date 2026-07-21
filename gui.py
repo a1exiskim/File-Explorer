@@ -46,7 +46,7 @@ class GUI:
         
         self.panel3_title.grid(row=0, column=0, sticky='nsew')
 
-        self.directory_summary_label = tk.Label(self.panel3, text='')
+        self.directory_summary_label = tk.Label(self.panel3, text='', bg='#8FBAEF', fg='#FFFFFF')
         self.directory_summary_label.grid(row=1, column=0, sticky='nsew')
 
         # create panel 1
@@ -82,8 +82,12 @@ class GUI:
         
         self.panel2_title.grid(row=0, column=0, sticky='nsew')
 
-        self.display_files_list = tk.Listbox(self.panel2, bg='#63976F', fg='#FFFFFF')
-        self.display_files_list.grid(row=1, column=0, sticky='nsew')
+        style.configure("FileTreeview.Treeview",
+                background='#63976F',
+                fieldbackground='#63976F',
+                fg='#FFFFFF')
+        self.display_files_tree = ttk.Treeview(self.panel2, style="FileTreeview.Treeview")
+        self.display_files_tree.grid(row=1, column=0, sticky='nsew', padx=10, pady=10)
 
         self.initial_path = None 
 
@@ -107,7 +111,6 @@ class GUI:
         folders = []
         files = []
         contents = os.listdir(path) # returns list of names of contents in folder 
-        print(contents)
 
         # check if contents are folder or file 
         for item in contents:
@@ -152,21 +155,19 @@ class GUI:
 
         
     def tree_item_selection(self, event):
-        '''Handles actions performed after a user selects a node in the directory tree.
-           Retrieves the selected node's path, determines whether it is a directory,
-           and obtains the contents of the selected directory for further processing.'''
         
-        print("tree_item_selection called")
-
-        item_selected = self.tree.selection() # returns a tuple
-        #print(item_selected)
-        item_node_id = item_selected[0] # item selected is only ever one item, we can extract the id from the 0th index
-        
+        item_selected = self.tree.selection()
+        item_node_id = item_selected[0]
         item_node_path = self.path_dictionary.get(item_node_id)
 
         if os.path.isdir(item_node_path):
             folders, files = self.get_selected_folder_contents(item_node_path)
-            self.display_subdirectory(item_node_id, folders)
+
+            if len(folders) > 0:
+                self.display_subdirectory(item_node_id, folders)
+            else:
+                self.display_files(item_node_path)
+
             self.display_directory_summary(item_node_path)
         
     
@@ -183,12 +184,15 @@ class GUI:
                     self.path_dictionary[subfolder_node] = full_node_path
 
     def display_files(self, path):
-        self.tree.delete(*self.display_files_list.get_children()) # remove old files from previous run
+        '''displays files in directory'''
+        
+        self.display_files_tree.delete(*self.display_files_tree.get_children())
 
         folders, files = self.get_selected_folder_contents(path)
     
         for file in files:
-            self.display_files_list.insert('end', file, Image=self.file_icon)
+            self.display_files_tree.insert('', 'end', text=file, image=self.file_icon)
+        
 
 gui = GUI()
 gui.root.mainloop()
