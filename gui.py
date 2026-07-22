@@ -145,16 +145,24 @@ class GUI:
     def display_directory_summary(self, path):
         '''displays metadata of current selected directory in panel 3'''
 
+        size_count = self.calculate_directory_size(path)
+        size, unit = self.format_storage_size(size_count)
+
+
         folders, files = self.get_selected_folder_contents(path)  
         selected_directory = os.path.basename(path)
         self.directory_summary_label.config(
             text= f"Selected Directory: {selected_directory}\n"
                   f"Path: {self.initial_path}\n"
                   f"Number of Folders: {len(folders)}\n"
-                  f"Number of Files: {len(files)}")
+                  f"Number of Files: {len(files)}\n"
+                  f"File size: {size} {unit}")
 
         
     def tree_item_selection(self, event):
+        '''handles actions performed after a user selects a node in the directory tree.
+           Retrieves the selected node's path, determines whether it is a directory,
+           and obtains the contents of the selected directory for further processing.'''
         
         item_selected = self.tree.selection()
         item_node_id = item_selected[0]
@@ -192,7 +200,40 @@ class GUI:
     
         for file in files:
             self.display_files_tree.insert('', 'end', text=file, image=self.file_icon)
+
+    def calculate_directory_size(self, file_path):
+        '''responsible for adding up file sizez'''
         
+        size_counter = 0
+        for current_path, folders, files in os.walk(file_path):
+            for file in files:
+                file_path = os.path.join(current_path, file)
+                try:
+                    size_counter += os.path.getsize(file_path)
+                except FileNotFoundError:
+                    pass
+        
+        return size_counter
+        
+    def format_storage_size(self, size):
+        '''responsible for making total file size readable and user friendly'''
+        
+        unit = 'bytes'
+        # note: the parameter size is in bytes
+
+        if size >= 1024:
+            size = round((size / 1024), 2) # KB conversion
+            unit = 'KB'
+        if size >= 1024:
+            size = round((size / 1024), 2) # MB conversion
+            unit = 'MB'
+        if size >= 1024:
+            size = round((size / 1024), 2) # GB conversion
+            unit = 'GB'
+        else:
+            size = round(size, 2) # bytes 
+    
+        return size, unit
 
 gui = GUI()
 gui.root.mainloop()
