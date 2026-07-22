@@ -153,10 +153,11 @@ class GUI:
         selected_directory = os.path.basename(path)
         self.directory_summary_label.config(
             text= f"Selected Directory: {selected_directory}\n"
-                  f"Path: {self.initial_path}\n"
+                  f"Path: {path}\n"
                   f"Number of Folders: {len(folders)}\n"
                   f"Number of Files: {len(files)}\n"
                   f"File size: {size} {unit}")
+        self.root.update_idletasks()
 
         
     def tree_item_selection(self, event):
