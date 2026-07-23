@@ -91,10 +91,16 @@ class GUI:
         self.display_files_tree = ttk.Treeview(self.panel2, style="FileTreeview.Treeview")
         self.display_files_tree.grid(row=1, column=0, sticky='nsew', padx=10, pady=10)
         
+        self.display_files_tree.tag_configure('file', foreground='white')
+        self.display_files_tree.tag_configure('selected_file', foreground='pink')
+        
         self.display_files_tree.bind("<<TreeviewSelect>>", self.file_selection) 
+        self.display_files_tree.tag_configure('file', foreground='#FFFFFF') # allows for colour change
 
         self.file_summary_label = tk.Label(self.panel2, text='File Summary', bg='#63976F', fg = '#FFFFFF')
         self.file_summary_label.grid(row=2, column=0, sticky='nsew')
+
+        self.previous_file = None
 
     # --- not specific to any panel ---
         self.initial_path = None 
@@ -211,7 +217,7 @@ class GUI:
         for file in files:
             file_path = os.path.join(path, file)
 
-            file_node = self.display_files_tree.insert('', 'end', text=file, image=self.file_icon)
+            file_node = self.display_files_tree.insert('', 'end', text=file, image=self.file_icon, tags=('file',))
 
             self.file_path_dict[file_node] = file_path
 
@@ -250,28 +256,37 @@ class GUI:
             size = round(size, 2) # bytes 
     
         return size, unit
-    
     def file_selection(self, event):
         '''obtains selected file's full path and displays selected file's summary'''
-    
+
         selected = self.display_files_tree.selection()
 
         if not selected:
             return
 
         item_id = selected[0]
+
+        # reset previous selected file colour
+        if self.previous_file:
+            self.display_files_tree.item(self.previous_file, tags=('file',))
+
+        # change current selected file colour
+        self.display_files_tree.item(item_id, tags=('selected_file',))
+
+        # store current selection
+        self.previous_file = item_id
+
         file_path = self.file_path_dict[item_id]
 
-        # --- obtaining data for display ---
         file_size = os.path.getsize(file_path)
 
         modified_time = os.path.getmtime(file_path)
         modified_date = datetime.fromtimestamp(modified_time)
 
         self.file_summary_label.config(
-            text=f"File Path: {file_path}\n"
-            f"File Size: {file_size} bytes\n"
-            f"Last Modified: {modified_date}")
+        text=f"File Path: {file_path}\n"
+             f"File Size: {file_size} bytes\n"
+             f"Last Modified: {modified_date}")
     
     
 
