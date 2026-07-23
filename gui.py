@@ -4,6 +4,7 @@ from tkinter import filedialog
 import os
 import os.path 
 from PIL import Image, ImageTk
+from datetime import datetime
 
 class GUI:
     def __init__(self):
@@ -54,7 +55,7 @@ class GUI:
         self.panel1.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
         self.panel1_title= tk.Label(self.panel1, text = 'Directory Tree', bg='#A6A6A6', fg = '#FFFFFF')
        
-        self.panel1.grid_rowconfigure(0, weight=1)
+        self.panel1.grid_rowconfigure(0, weight=1) # title
         self.panel1.grid_columnconfigure(0, weight=1)
         self.panel1.grid_rowconfigure(1, weight=1) # space for 'choose folder' button
         self.panel1.grid_rowconfigure(2, weight=5) # space for directory tree
@@ -70,16 +71,16 @@ class GUI:
         self.tree.grid(row=2, column=0, sticky='nsew')
 
         self.tree.bind('<<TreeviewSelect>>', self.tree_item_selection)
-        self.display_files_tree.bind("<<ListboxSelect>>", self.file_selection) 
 
         # create panel 2
         self.panel2 = tk.Frame(self.root, bg = '#63976F')
         self.panel2.grid(row=1, column = 1, sticky='nsew', padx=5, pady=5)
         self.panel2_title = tk.Label(self.panel2, text = 'Files', bg = '#63976F', fg = '#FFFFFF')
        
-        self.panel2.grid_rowconfigure(0, weight=1)
-        self.panel2.grid_columnconfigure(0, weight=1)
-        self.panel2.grid_rowconfigure(1, weight=5) # space for files
+        self.panel2.grid_rowconfigure(0, weight=1) # title
+        self.panel2.grid_columnconfigure(0, weight=1) 
+        self.panel2.grid_rowconfigure(1, weight=4) # space for files
+        self.panel2.grid_rowconfigure(2, weight=2) #space for file summary
         
         self.panel2_title.grid(row=0, column=0, sticky='nsew')
 
@@ -89,10 +90,17 @@ class GUI:
                 fg='#FFFFFF')
         self.display_files_tree = ttk.Treeview(self.panel2, style="FileTreeview.Treeview")
         self.display_files_tree.grid(row=1, column=0, sticky='nsew', padx=10, pady=10)
+        
+        self.display_files_tree.bind("<<TreeviewSelect>>", self.file_selection) 
 
+        self.file_summary_label = tk.Label(self.panel2, text='File Summary', bg='#63976F', fg = '#FFFFFF')
+        self.file_summary_label.grid(row=2, column=0, sticky='nsew')
+
+    # --- not specific to any panel ---
         self.initial_path = None 
 
         self.path_dictionary = {}
+        self.file_path_dict = {}
 
     
     def choose_folder(self):
@@ -201,7 +209,15 @@ class GUI:
         folders, files = self.get_selected_folder_contents(path)
     
         for file in files:
+            file_path = os.path.join(path, file)
+
+            file_node = self.display_files_tree.insert('', 'end', text=file, image=self.file_icon)
+
+            self.file_path_dict[file_node] = file_path
+            
             self.display_files_tree.insert('', 'end', text=file, image=self.file_icon)
+
+            
 
     def calculate_directory_size(self, file_path):
         '''responsible for adding up file size'''
@@ -238,15 +254,27 @@ class GUI:
         return size, unit
     
     def file_selection(self, event):
-        selected = self.display_files_tree.selection() # get current file selection
+        '''obtains selected file's full path and displays selected file's summary'''
+    
+        selected = self.display_files_tree.selection()
 
-        if not selected: # if not a tuple, exit function 
+        if not selected:
             return
 
-        item_id = selected[0] # get the file name 
-        filename = self.display_files_tree.item(item_id, "text") 
+        item_id = selected[0]
+        file_path = self.file_path_dict[item_id]
 
-        print(filename)
+        # --- obtaining data for display ---
+        file_size = os.path.getsize(file_path)
+
+        modified_time = os.path.getmtime(file_path)
+        modified_date = datetime.fromtimestamp(modified_time)
+
+        self.file_summary_label.config(
+            text=f"File Path: {file_path}\n"
+            f"File Size: {file_size} bytes\n"
+            f"Last Modified: {modified_date}")
+    
     
 
 gui = GUI()
