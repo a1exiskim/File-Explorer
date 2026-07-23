@@ -70,6 +70,7 @@ class GUI:
         self.tree.grid(row=2, column=0, sticky='nsew')
 
         self.tree.bind('<<TreeviewSelect>>', self.tree_item_selection)
+        self.display_files_tree.bind("<<ListboxSelect>>", self.file_selection) 
 
         # create panel 2
         self.panel2 = tk.Frame(self.root, bg = '#63976F')
@@ -203,7 +204,7 @@ class GUI:
             self.display_files_tree.insert('', 'end', text=file, image=self.file_icon)
 
     def calculate_directory_size(self, file_path):
-        '''responsible for adding up file sizez'''
+        '''responsible for adding up file size'''
         
         size_counter = 0
         for current_path, folders, files in os.walk(file_path):
@@ -235,6 +236,18 @@ class GUI:
             size = round(size, 2) # bytes 
     
         return size, unit
+    
+    def file_selection(self, event):
+        selected = self.display_files_tree.selection() # get current file selection
+
+        if not selected: # if not a tuple, exit function 
+            return
+
+        item_id = selected[0] # get the file name 
+        filename = self.display_files_tree.item(item_id, "text") 
+
+        print(filename)
+    
 
 gui = GUI()
 gui.root.mainloop()
