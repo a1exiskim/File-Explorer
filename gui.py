@@ -214,8 +214,6 @@ class GUI:
             file_node = self.display_files_tree.insert('', 'end', text=file, image=self.file_icon)
 
             self.file_path_dict[file_node] = file_path
-            
-            self.display_files_tree.insert('', 'end', text=file, image=self.file_icon)
 
             
 
